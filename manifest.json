@@ -1,0 +1,43 @@
+{
+    "manifest_version": 3,
+    "name": "Eproc Pasta Digital",
+    "version": "1.0",
+    "description": "Adiciona visualização de Pasta Digital ao Eproc",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "host_permissions": [
+        "*://eproc1g.tjsp.jus.br/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*/eproc/controlador.php?acao=processo_selecionar*"
+            ],
+            "js": [
+                "src/utils.js",
+                "src/parser.js",
+                "src/api.js",
+                "src/content.js"
+            ],
+            "css": [
+                "src/content.css"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "src/pasta_window.html",
+                "src/formatter.js",
+                "src/pasta_ui.js",
+                "src/pasta_style.css"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
