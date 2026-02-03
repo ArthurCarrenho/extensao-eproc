@@ -1,3 +1,7 @@
+// Pasta UI Module
+import { parseDate } from './utils.js';
+import { formatEventDocument } from './formatter.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     loadEvents();
 });
@@ -15,14 +19,17 @@ function loadEvents() {
         }
 
         renderTree(events);
-        loadingStatus.innerText = `${events.length} documentos.`;
+
+        // Count total documents
+        const totalDocs = events.reduce((sum, e) => sum + (e.documents?.length || 0), 0);
+        loadingStatus.innerText = `${events.length} eventos, ${totalDocs} documentos.`;
 
         // Select first document automatically
         if (events.length > 0) {
             setTimeout(() => {
                 const firstItem = document.querySelector('.tree-item');
                 if (firstItem) {
-                    selectItem(firstItem, events[0]);
+                    firstItem.click();
                 }
             }, 0);
         }
@@ -33,7 +40,8 @@ function loadEvents() {
         if (area === 'local' && changes.eproc_events) {
             const newEvents = changes.eproc_events.newValue;
             renderTree(newEvents);
-            document.getElementById('loading-status').innerText = `${newEvents.length} documentos (Atualizado).`;
+            const totalDocs = newEvents.reduce((sum, e) => sum + (e.documents?.length || 0), 0);
+            document.getElementById('loading-status').innerText = `${newEvents.length} eventos, ${totalDocs} documentos (Atualizado).`;
         }
     });
 }
@@ -48,37 +56,168 @@ function renderTree(events) {
     });
 
     sortedEvents.forEach((event, index) => {
-        const item = document.createElement('div');
-        item.className = 'tree-item';
-        item.dataset.index = index;
-        item.title = `${event.longTitle || event.descricao} - ${event.dataHora}`;
+        const hasMultipleDocs = event.documents && event.documents.length > 1;
 
-        const displayTitle = event.shortTitle || event.descricao || "Documento";
-        const icon = getIconForType(displayTitle);
-
-        if (event.docUrl) {
-            item.innerHTML = `
-                <span class="icon">${icon}</span>
-                <span class="date">[${event.dataHora}]</span>
-                <span class="title">${displayTitle}</span>
-            `;
-            item.addEventListener('click', () => {
-                selectItem(item, event);
-            });
+        if (hasMultipleDocs) {
+            // Render as expandable folder
+            const folder = createFolderItem(event, index);
+            treeView.appendChild(folder);
         } else {
-            item.classList.add('no-doc');
-            item.innerHTML = `
-                <span class="icon" style="opacity:0.5; filter: grayscale(100%);">▪️</span>
-                <span class="date" style="opacity:0.7">[${event.dataHora}]</span>
-                <span class="title" style="color:#666">${displayTitle}</span>
-            `;
-            item.addEventListener('click', () => {
-                selectItem(item, event);
-            });
+            // Render as single item
+            const item = createTreeItem(event, index);
+            item.addEventListener('click', () => selectItem(item, event));
+            treeView.appendChild(item);
         }
-
-        treeView.appendChild(item);
     });
+}
+
+/**
+ * Creates an expandable folder for events with multiple documents
+ * @param {Object} event - Event object with documents array
+ * @param {number} index - Index in the list
+ * @returns {HTMLElement} - Folder container div
+ */
+function createFolderItem(event, index) {
+    const folder = document.createElement('div');
+    folder.className = 'tree-folder';
+    folder.dataset.index = index;
+
+    // Folder header (clickable to expand/collapse)
+    const header = document.createElement('div');
+    header.className = 'tree-folder-header';
+    header.title = `${event.longTitle || event.shortTitle} - ${event.dataHora}`;
+
+    const expandIcon = document.createElement('span');
+    expandIcon.className = 'folder-expand-icon';
+    expandIcon.textContent = '▶';
+
+    const folderIcon = document.createElement('span');
+    folderIcon.className = 'icon';
+    folderIcon.textContent = '📁';
+
+    const dateSpan = document.createElement('span');
+    dateSpan.className = 'date';
+    dateSpan.textContent = `[${event.dataHora}]`;
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'title';
+    titleSpan.textContent = event.shortTitle || event.descricao || "Evento";
+
+    const countBadge = document.createElement('span');
+    countBadge.className = 'doc-count';
+    countBadge.textContent = `(${event.documents.length})`;
+
+    header.appendChild(expandIcon);
+    header.appendChild(folderIcon);
+    header.appendChild(dateSpan);
+    header.appendChild(titleSpan);
+    header.appendChild(countBadge);
+
+    // Children container (hidden by default)
+    const children = document.createElement('div');
+    children.className = 'tree-folder-children';
+    children.style.display = 'none';
+
+    // Create child items for each document
+    event.documents.forEach((doc, docIndex) => {
+        const childItem = createDocumentItem(event, doc, docIndex);
+        children.appendChild(childItem);
+    });
+
+    // Toggle expand/collapse on header click
+    header.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isExpanded = folder.classList.toggle('expanded');
+        children.style.display = isExpanded ? 'block' : 'none';
+        expandIcon.textContent = isExpanded ? '▼' : '▶';
+        folderIcon.textContent = isExpanded ? '📂' : '📁';
+    });
+
+    folder.appendChild(header);
+    folder.appendChild(children);
+
+    return folder;
+}
+
+/**
+ * Creates a tree item for a single document within a folder
+ * @param {Object} event - Parent event object
+ * @param {Object} doc - Document object
+ * @param {number} docIndex - Index of document
+ * @returns {HTMLElement} - Tree item div
+ */
+function createDocumentItem(event, doc, docIndex) {
+    const item = document.createElement('div');
+    item.className = 'tree-item tree-item--child';
+    item.dataset.docIndex = docIndex;
+    item.title = doc.title;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'icon';
+    iconSpan.textContent = getIconForType(doc.name);
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'title';
+    titleSpan.textContent = doc.name || doc.title || "Documento";
+
+    item.appendChild(iconSpan);
+    item.appendChild(titleSpan);
+
+    // Create a synthetic event for this specific document
+    item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const docEvent = {
+            ...event,
+            docTitle: doc.title,
+            docUrl: doc.url,
+            docId: doc.docId
+        };
+        selectItem(item, docEvent);
+    });
+
+    return item;
+}
+
+/**
+ * Creates a tree item element for a single-document event
+ * @param {Object} event - Event object
+ * @param {number} index - Index in the list
+ * @returns {HTMLElement} - Tree item div
+ */
+function createTreeItem(event, index) {
+    const item = document.createElement('div');
+    item.className = 'tree-item';
+    item.dataset.index = index;
+    item.title = `${event.longTitle || event.descricao} - ${event.dataHora}`;
+
+    const displayTitle = event.shortTitle || event.descricao || "Documento";
+    const icon = getIconForType(displayTitle);
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'icon';
+
+    const dateSpan = document.createElement('span');
+    dateSpan.className = 'date';
+    dateSpan.textContent = `[${event.dataHora}]`;
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'title';
+    titleSpan.textContent = displayTitle;
+
+    const hasDoc = event.documents && event.documents.length > 0;
+
+    if (hasDoc) {
+        iconSpan.textContent = icon;
+    } else {
+        item.classList.add('tree-item--no-doc');
+        iconSpan.textContent = '▪️';
+    }
+
+    item.appendChild(iconSpan);
+    item.appendChild(dateSpan);
+    item.appendChild(titleSpan);
+
+    return item;
 }
 
 function selectItem(element, event) {
@@ -100,19 +239,6 @@ function openDocument(event) {
     viewer.src = formatEventDocument(event);
 }
 
-function parseDate(dateStr) {
-    if (!dateStr) return 0;
-    try {
-        const parts = dateStr.split(' ');
-        if (parts.length < 2) return 0;
-        const dateParts = parts[0].split('/');
-        const timeParts = parts[1].split(':');
-        return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
-    } catch (e) {
-        return 0;
-    }
-}
-
 function getIconForType(description) {
     const lowerDesc = (description || "").toLowerCase();
     if (lowerDesc.includes('despacho')) return '⚖️';
@@ -120,5 +246,6 @@ function getIconForType(description) {
     if (lowerDesc.includes('petição')) return '📝';
     if (lowerDesc.includes('laudo')) return '📋';
     if (lowerDesc.includes('ato ordinatório')) return '📌';
+    if (lowerDesc.includes('dec') || lowerDesc.includes('decisão')) return '📜';
     return '📄';
 }

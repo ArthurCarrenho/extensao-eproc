@@ -1,6 +1,7 @@
 // API Fetching Logic
+import { extractEventsFromDocument } from './parser.js';
 
-async function fetchAllOtherPages() {
+export async function fetchAllOtherPages() {
     const events = [];
 
     // 1. Find pagination select
@@ -64,7 +65,6 @@ async function fetchPage(pageVal, numProcesso, hash) {
         const text = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'text/html');
-        // Requires extractEventsFromDocument to be available in global scope (parser.js)
         return extractEventsFromDocument(doc);
 
     } catch (err) {

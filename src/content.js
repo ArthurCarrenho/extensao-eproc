@@ -1,3 +1,8 @@
+// Content Script Entry Point
+import { parseDate } from './utils.js';
+import { extractEventsFromDocument } from './parser.js';
+import { fetchAllOtherPages } from './api.js';
+
 console.log("Eproc Pasta Digital: Content script loaded");
 
 function injectPastaButton() {
@@ -32,11 +37,11 @@ async function openPastaWindow() {
     btn.disabled = true;
 
     try {
-        // 1. Scrape current page (Function from parser.js)
+        // 1. Scrape current page
         const currentEvents = extractEventsFromDocument(document);
         console.log(`Página atual: ${currentEvents.length} eventos.`);
 
-        // 2. Fetch other pages (Function from api.js)
+        // 2. Fetch other pages
         const otherEvents = await fetchAllOtherPages();
         console.log(`Outras páginas: ${otherEvents.length} eventos.`);
 
@@ -51,14 +56,14 @@ async function openPastaWindow() {
             return true;
         });
 
-        // Sort: Oldest to Newest (Cronológica) (Function from utils.js)
+        // Sort: Oldest to Newest (Cronológica)
         allEvents.sort((a, b) => parseDate(a.dataHora) - parseDate(b.dataHora));
 
         console.log(`Total final: ${allEvents.length} eventos.`);
 
         // 4. Store and Open
         chrome.storage.local.set({ 'eproc_events': allEvents }, () => {
-            const url = chrome.runtime.getURL('src/pasta_window.html');
+            const url = chrome.runtime.getURL('pasta_window.html');
             window.open(url, 'PastaDigitalEproc', 'width=1200,height=800');
         });
 

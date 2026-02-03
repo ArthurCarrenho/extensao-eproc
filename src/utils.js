@@ -1,6 +1,11 @@
 // Utility functions for Eproc Pasta Digital
 
-function parseDate(dateStr) {
+/**
+ * Parse Brazilian date format to timestamp
+ * @param {string} dateStr - Date in dd/mm/yyyy hh:mm:ss format
+ * @returns {number} - Unix timestamp
+ */
+export function parseDate(dateStr) {
     // dd/mm/yyyy hh:mm:ss
     if (!dateStr) return 0;
     try {
@@ -12,4 +17,17 @@ function parseDate(dateStr) {
         console.warn("Failed to parse date:", dateStr);
         return 0;
     }
+}
+
+/**
+ * Simple template interpolation
+ * Replaces {{key}} placeholders with values from data object
+ * @param {string} template - Template string with {{key}} placeholders
+ * @param {Object} data - Key-value pairs for substitution
+ * @returns {string} - Interpolated string
+ */
+export function interpolate(template, data) {
+    return template.replace(/___([\w]+)___/g, (match, key) => {
+        return data.hasOwnProperty(key) ? (data[key] ?? '') : match;
+    });
 }

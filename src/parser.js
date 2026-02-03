@@ -1,6 +1,50 @@
 // Parser Logic for Eproc Pasta Digital
 
 /**
+ * Parses the HTML string from event info tooltips to extract structured data
+ * @param {string} htmlStr - The HTML string from data-infoevento or onmouseover
+ * @returns {Object} - Parsed key-value pairs
+ */
+function parseEventInfoHtml(htmlStr) {
+    if (!htmlStr) return null;
+
+    // Decode HTML entities
+    const decoded = htmlStr
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+
+    // Extract key-value pairs from patterns like "<b>Key:</b></u></font><br>...value..."
+    const result = {};
+
+    // Known keys to look for
+    const keyPatterns = [
+        { key: 'dataEvento', pattern: /Data do Evento:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'evento', pattern: /Evento:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'usuario', pattern: /Usuário:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'magistrado', pattern: /Magistrado\(s\):<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'statusPrazo', pattern: /Status do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'dataInicial', pattern: /Data Inicial da Contagem do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'dataFinal', pattern: /Data Final do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'fechamentoPrazo', pattern: /Fechamento do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+        { key: 'aberturaIntimacao', pattern: /Abertura da Intimação:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
+    ];
+
+    for (const { key, pattern } of keyPatterns) {
+        const match = decoded.match(pattern);
+        if (match && match[1]) {
+            result[key] = match[1].trim();
+        }
+    }
+
+    // Only return if we found something
+    return Object.keys(result).length > 0 ? result : null;
+}
+
+/**
  * Extracts events from the Eproc HTML document.
  * Handles:
  * - Event metadata (ID, Date, Description)
@@ -11,7 +55,7 @@
  * @param {Document} doc - The DOM document or parsed HTML document
  * @returns {Array} Array of event objects
  */
-function extractEventsFromDocument(doc) {
+export function extractEventsFromDocument(doc) {
     const events = [];
     // Select both tables just in case (Novos and standard)
     const rows = doc.querySelectorAll('table#tblEventosNovos tr[id^="trEvento"], table#tblEventos tr[id^="trEvento"]');
@@ -100,47 +144,78 @@ function extractEventsFromDocument(doc) {
             // 3. HTML Content (Fallback Body)
             const conteudoHtml = descricaoEl ? descricaoEl.innerHTML : "";
 
+            // 4. Extract User Data from infraEventoUsuario
+            const userLabel = row.querySelector('label.infraEventoUsuario');
+            let userData = null;
+            if (userLabel) {
+                const userAriaLabel = userLabel.getAttribute('aria-label');
+                const userId = userLabel.innerText.trim();
+                if (userAriaLabel) {
+                    // Parse aria-label: "NOME<br>CARGO<br>UNIDADE"
+                    const userParts = userAriaLabel.split(/<br\s*\/?>/i).map(s => s.trim()).filter(Boolean);
+                    userData = {
+                        id: userId,
+                        name: userParts[0] || userId,
+                        role: userParts[1] || '',
+                        unit: userParts.slice(2).join(' - ') || ''
+                    };
+                }
+            }
+
+            // 5. Extract Event Info from tooltip (data-infoevento or onmouseover)
+            const infoLupa = row.querySelector('a[data-infoevento]');
+            const infoFromOnmouseover = row.querySelector('a[onmouseover*="infraTooltipMostrar"]');
+            let eventInfo = null;
+
+            if (infoLupa) {
+                // Parse data-infoevento attribute
+                const infoHtml = infoLupa.getAttribute('data-infoevento');
+                if (infoHtml) {
+                    eventInfo = parseEventInfoHtml(infoHtml);
+                }
+            } else if (infoFromOnmouseover) {
+                // Parse from onmouseover attribute
+                const onmouseoverAttr = infoFromOnmouseover.getAttribute('onmouseover');
+                const match = onmouseoverAttr?.match(/infraTooltipMostrar\('(.+?)',\s*'/);
+                if (match && match[1]) {
+                    eventInfo = parseEventInfoHtml(match[1]);
+                }
+            }
+
             // Find ALL document links in the row
             const docLinks = row.querySelectorAll('a.infraLinkDocumento');
 
-            if (docLinks.length > 0) {
-                // Create an event entry for EACH document
-                docLinks.forEach((link, index) => {
-                    const docTitle = link.getAttribute('title') || link.innerText.trim();
-                    const docName = link.innerText.trim(); // e.g., "DEC78"
+            // Store documents as an array within the event
+            const documents = [];
+            docLinks.forEach((link, index) => {
+                documents.push({
+                    id: `${row.id}_doc${index}`,
+                    title: link.getAttribute('title') || link.innerText.trim(),
+                    name: link.innerText.trim(),
+                    url: link.href,
+                    docId: link.getAttribute('data-doc')
+                });
+            });
 
-                    events.push({
-                        id: `${row.id}_${index}`,
-                        dataHora: dataHora,
-                        shortTitle: `${shortDescription} - ${docName}`,
-                        longTitle: fullText,
-                        headerTitle: headerTitle,
-                        subtitle: subtitle,
-                        contentBody: contentBody,
-                        lawyers: lawyers,
-                        docTitle: docTitle,
-                        docUrl: link.href,
-                        docId: link.getAttribute('data-doc'),
-                        conteudo: conteudoHtml
-                    });
-                });
-            } else {
-                // No documents
-                events.push({
-                    id: row.id,
-                    dataHora: dataHora,
-                    shortTitle: shortDescription,
-                    longTitle: fullText,
-                    headerTitle: headerTitle,
-                    subtitle: subtitle,
-                    contentBody: contentBody,
-                    lawyers: lawyers,
-                    docTitle: "Evento sem documento",
-                    docUrl: null,
-                    docId: null,
-                    conteudo: conteudoHtml
-                });
-            }
+            // Create a single event with documents array
+            events.push({
+                id: row.id,
+                dataHora: dataHora,
+                shortTitle: shortDescription,
+                longTitle: fullText,
+                headerTitle: headerTitle,
+                subtitle: subtitle,
+                contentBody: contentBody,
+                lawyers: lawyers,
+                userData: userData,
+                eventInfo: eventInfo,
+                documents: documents, // Array of documents
+                // Keep legacy fields for backward compatibility
+                docTitle: documents.length > 0 ? documents[0].title : "Evento sem documento",
+                docUrl: documents.length > 0 ? documents[0].url : null,
+                docId: documents.length > 0 ? documents[0].docId : null,
+                conteudo: conteudoHtml
+            });
         } catch (error) {
             console.error("Error parsing row:", row, error);
         }
