@@ -3,6 +3,27 @@ import { interpolate } from './utils.js';
 import baseCss from './templates/base-layout.css?raw';
 import duplicateLayoutTemplate from './templates/duplicate-layout.html?raw';
 import standardLayoutTemplate from './templates/standard-layout.html?raw';
+import audioLayoutTemplate from './templates/audio-layout.html?raw';
+
+/**
+ * Checks if a document name matches the audio pattern (ÁUDIO followed by a number)
+ * @param {string} name - Document name or title
+ * @returns {boolean}
+ */
+/**
+ * Audio mime types that should be rendered with the audio player
+ */
+const AUDIO_MIMETYPES = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'wma', 'audio/mpeg', 'audio/wav', 'audio/ogg'];
+
+function isAudioDocument(event) {
+    // Check mimetype first (most reliable)
+    if (event.docMimetype && AUDIO_MIMETYPES.includes(event.docMimetype.toLowerCase())) {
+        return true;
+    }
+    // Fallback: check document name pattern
+    const name = event.docName || event.docTitle || event.shortTitle || '';
+    return /\u00c1UDIO\s*\d+/i.test(name);
+}
 
 /**
  * Determines the appropriate formatting type for an event
@@ -315,11 +336,37 @@ function formatStandardLayout(event) {
 }
 
 /**
+ * Generates HTML for audio layout with embedded player
+ * @param {Object} event - Event object
+ * @returns {string} - Complete HTML document string
+ */
+function formatAudioLayout(event) {
+    const headerTitle = event.headerTitle || event.shortTitle || 'Áudio';
+    const docTitle = event.docTitle || event.shortTitle || 'Áudio';
+    const headerMetaHtml = renderHeaderMeta(event.userData, event.eventInfo);
+
+    return interpolate(audioLayoutTemplate, {
+        baseStyles: baseCss,
+        headerTitle: headerTitle,
+        dataHora: event.dataHora,
+        headerMeta: headerMetaHtml,
+        docTitle: docTitle,
+        audioUrl: event.docUrl || ''
+    });
+}
+
+/**
  * Main formatting function - returns the appropriate HTML based on event type
  * @param {Object} event - Event object with all parsed fields
  * @returns {string} - Data URI or URL for iframe src
  */
 export function formatEventDocument(event) {
+    // Check if the document is an audio file
+    if (event.docUrl && isAudioDocument(event)) {
+        const html = formatAudioLayout(event);
+        return 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+    }
+
     // If event has a URL, use it directly
     if (event.docUrl) {
         return event.docUrl;

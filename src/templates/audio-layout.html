@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        ___baseStyles___
+    </style>
+    <style>
+        /* Audio Layout */
+        .audio-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            padding: var(--space-xl);
+        }
+
+        .audio-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-lg);
+            opacity: 0.8;
+        }
+
+        .audio-title {
+            font-size: var(--font-size-xl);
+            color: var(--color-primary);
+            margin-bottom: var(--space-sm);
+            text-align: center;
+        }
+
+        .audio-player {
+            width: 100%;
+            max-width: 500px;
+            margin: var(--space-lg) 0;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            border-radius: var(--radius-md);
+        }
+
+        .audio-download {
+            margin-top: var(--space-md);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--color-primary);
+            color: #fff;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .audio-download:hover {
+            background: var(--color-primary-dark);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-section">
+        <h2>___headerTitle___</h2>
+        <div class="meta">___dataHora___</div>
+        ___headerMeta___
+    </div>
+    <div class="content-section">
+        <div class="audio-container">
+            <div class="audio-icon">🔊</div>
+            <div class="audio-title">___docTitle___</div>
+            <div class="audio-player">
+                <audio controls preload="metadata" src="___audioUrl___">
+                    Seu navegador não suporta o elemento de áudio.
+                </audio>
+            </div>
+            <a class="audio-download" href="___audioUrl___" target="_blank" download>
+                ⬇ Baixar Áudio
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

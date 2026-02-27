@@ -16,6 +16,7 @@ function injectPastaButton() {
     const button = document.createElement('button');
     button.innerText = '📂 Pasta Digital';
     button.id = 'eproc-pasta-btn';
+    button.type = 'button'; // Prevent form submission
     button.className = 'infraButton'; // Native class for styling
     button.style.marginLeft = '10px';
     button.style.fontWeight = 'bold';

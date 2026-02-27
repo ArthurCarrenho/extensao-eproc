@@ -154,7 +154,7 @@ function createDocumentItem(event, doc, docIndex) {
 
     const iconSpan = document.createElement('span');
     iconSpan.className = 'icon';
-    iconSpan.textContent = getIconForType(doc.name);
+    iconSpan.textContent = getIconForType(doc.name, doc.mimetype);
 
     const titleSpan = document.createElement('span');
     titleSpan.className = 'title';
@@ -169,8 +169,10 @@ function createDocumentItem(event, doc, docIndex) {
         const docEvent = {
             ...event,
             docTitle: doc.title,
+            docName: doc.name,
             docUrl: doc.url,
-            docId: doc.docId
+            docId: doc.docId,
+            docMimetype: doc.mimetype
         };
         selectItem(item, docEvent);
     });
@@ -191,7 +193,8 @@ function createTreeItem(event, index) {
     item.title = `${event.longTitle || event.descricao} - ${event.dataHora}`;
 
     const displayTitle = event.shortTitle || event.descricao || "Documento";
-    const icon = getIconForType(displayTitle);
+    const firstDoc = event.documents && event.documents[0];
+    const icon = getIconForType(displayTitle, firstDoc?.mimetype);
 
     const iconSpan = document.createElement('span');
     iconSpan.className = 'icon';
@@ -239,8 +242,11 @@ function openDocument(event) {
     viewer.src = formatEventDocument(event);
 }
 
-function getIconForType(description) {
+function getIconForType(description, mimetype) {
+    // Check mimetype for audio files
+    if (mimetype && ['mp3', 'wav', 'ogg', 'aac', 'flac', 'wma'].includes(mimetype.toLowerCase())) return '🔊';
     const lowerDesc = (description || "").toLowerCase();
+    if (/\u00e1udio\s*\d+/i.test(description || '')) return '🔊';
     if (lowerDesc.includes('despacho')) return '⚖️';
     if (lowerDesc.includes('sentença') || lowerDesc.includes('julgamento')) return '🔨';
     if (lowerDesc.includes('petição')) return '📝';

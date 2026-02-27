@@ -193,7 +193,8 @@ export function extractEventsFromDocument(doc) {
                     title: link.getAttribute('title') || link.innerText.trim(),
                     name: link.innerText.trim(),
                     url: link.href,
-                    docId: link.getAttribute('data-doc')
+                    docId: link.getAttribute('data-doc'),
+                    mimetype: link.getAttribute('data-mimetype') || ''
                 });
             });
 
@@ -212,8 +213,10 @@ export function extractEventsFromDocument(doc) {
                 documents: documents, // Array of documents
                 // Keep legacy fields for backward compatibility
                 docTitle: documents.length > 0 ? documents[0].title : "Evento sem documento",
+                docName: documents.length > 0 ? documents[0].name : null,
                 docUrl: documents.length > 0 ? documents[0].url : null,
                 docId: documents.length > 0 ? documents[0].docId : null,
+                docMimetype: documents.length > 0 ? documents[0].mimetype : null,
                 conteudo: conteudoHtml
             });
         } catch (error) {
