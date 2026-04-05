@@ -1,7 +1,6 @@
 // Formatter Module - Handles special formatting cases for event documents
 import { interpolate } from './utils.js';
 import baseCss from './templates/base-layout.css?raw';
-import duplicateLayoutTemplate from './templates/duplicate-layout.html?raw';
 import standardLayoutTemplate from './templates/standard-layout.html?raw';
 import audioLayoutTemplate from './templates/audio-layout.html?raw';
 
@@ -23,36 +22,6 @@ function isAudioDocument(event) {
     // Fallback: check document name pattern
     const name = event.docName || event.docTitle || event.shortTitle || '';
     return /\u00c1UDIO\s*\d+/i.test(name);
-}
-
-/**
- * Determines the appropriate formatting type for an event
- * @param {Object} event - Event object with all parsed fields
- * @returns {string} - Format type: 'duplicate', 'standard', or 'url'
- */
-export function getFormatType(event) {
-    // If event has a URL, it's an external document
-    if (event.docUrl) {
-        return 'url';
-    }
-
-    const bodyContent = event.contentBody || event.conteudo || "";
-    // Normalize string for comparison (remove HTML tags, extra spaces)
-    const cleanContent = bodyContent.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-
-    const docTitle = (event.docTitle || '').trim();
-    const headerTitle = (event.headerTitle || event.descricao || '').replace(/\s+/g, ' ').trim();
-
-    // Check duplication against Doc Title
-    const matchesDocTitle = docTitle &&
-        docTitle !== "Evento sem documento" &&
-        (cleanContent === docTitle || cleanContent.startsWith(docTitle));
-
-    // Check duplication against Header Title (common for text-only events)
-    // If we only have header and content, and content == header, it's a duplicate.
-    const matchesHeaderTitle = headerTitle && (cleanContent === headerTitle || cleanContent.includes(headerTitle));
-
-    return (matchesDocTitle || matchesHeaderTitle) ? 'duplicate' : 'standard';
 }
 
 /**
@@ -237,44 +206,6 @@ function renderDetailsTable(details) {
             </tbody>
         </table>
     `;
-}
-
-/**
- * Generates HTML for duplicate content layout (single column, cleaner)
- * @param {Object} event - Event object
- * @returns {string} - Complete HTML document string
- */
-function formatDuplicateLayout(event) {
-    // Choose the best title for parsing
-    let mainTitle = event.docTitle || "";
-    const headerTitle = event.headerTitle || event.descricao || "";
-
-    // Use the longer/more detailed title
-    if (!mainTitle || mainTitle === "Evento sem documento" || mainTitle === "Documento") {
-        mainTitle = headerTitle;
-    } else if (headerTitle && headerTitle.length > mainTitle.length) {
-        mainTitle = headerTitle;
-    }
-
-    // Parse the title into structured content
-    const parsed = parseStructuredContent(mainTitle);
-
-    // Generate details table HTML
-    const detailsHtml = renderDetailsTable(parsed.details);
-
-    // Generate description HTML if no details
-    const descriptionHtml = parsed.description
-        ? `<p class="description">${parsed.description}</p>`
-        : '';
-
-    return interpolate(duplicateLayoutTemplate, {
-        baseStyles: baseCss,
-        mainTitle: parsed.header,
-        dataHora: event.dataHora,
-        detailsTable: detailsHtml,
-        description: descriptionHtml,
-        lawyersTable: renderLawyersTable(event.lawyers)
-    });
 }
 
 /**

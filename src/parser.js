@@ -5,42 +5,42 @@
  * @param {string} htmlStr - The HTML string from data-infoevento or onmouseover
  * @returns {Object} - Parsed key-value pairs
  */
+// Maps label text (as it appears in the tooltip) to result object keys
+const TOOLTIP_KEY_MAP = {
+    'Data do Evento':                    'dataEvento',
+    'Evento':                            'evento',
+    'Usuário':                           'usuario',
+    'Magistrado(s)':                     'magistrado',
+    'Status do Prazo':                   'statusPrazo',
+    'Data Inicial da Contagem do Prazo': 'dataInicial',
+    'Data Final do Prazo':               'dataFinal',
+    'Fechamento do Prazo':               'fechamentoPrazo',
+    'Abertura da Intimação':             'aberturaIntimacao',
+};
+
 function parseEventInfoHtml(htmlStr) {
     if (!htmlStr) return null;
 
-    // Decode HTML entities
-    const decoded = htmlStr
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'");
-
-    // Extract key-value pairs from patterns like "<b>Key:</b></u></font><br>...value..."
+    const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
     const result = {};
 
-    // Known keys to look for
-    const keyPatterns = [
-        { key: 'dataEvento', pattern: /Data do Evento:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'evento', pattern: /Evento:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'usuario', pattern: /Usuário:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'magistrado', pattern: /Magistrado\(s\):<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'statusPrazo', pattern: /Status do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'dataInicial', pattern: /Data Inicial da Contagem do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'dataFinal', pattern: /Data Final do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'fechamentoPrazo', pattern: /Fechamento do Prazo:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-        { key: 'aberturaIntimacao', pattern: /Abertura da Intimação:<\/b><\/u><\/font>.*?<font[^>]*>([^<]+)/i },
-    ];
+    doc.querySelectorAll('b').forEach(b => {
+        const label = b.textContent.replace(/:$/, '').trim();
+        const key = TOOLTIP_KEY_MAP[label];
+        if (!key) return;
 
-    for (const { key, pattern } of keyPatterns) {
-        const match = decoded.match(pattern);
-        if (match && match[1]) {
-            result[key] = match[1].trim();
+        // Value is in the next non-empty text node or font element after the <b>
+        let node = b.parentElement?.nextSibling;
+        while (node) {
+            const text = node.textContent?.trim();
+            if (text) {
+                result[key] = text;
+                break;
+            }
+            node = node.nextSibling;
         }
-    }
+    });
 
-    // Only return if we found something
     return Object.keys(result).length > 0 ? result : null;
 }
 

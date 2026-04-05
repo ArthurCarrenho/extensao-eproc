@@ -20,9 +20,17 @@ function chromeExtensionPlugin() {
                 mkdirSync(distDir, { recursive: true });
             }
 
-            // Copy CSS files
+            // Copy static files
             copyFileSync(resolve(srcDir, 'pasta_style.css'), resolve(distDir, 'pasta_style.css'));
             copyFileSync(resolve(srcDir, 'content.css'), resolve(distDir, 'content.css'));
+            copyFileSync(resolve(srcDir, 'background.js'), resolve(distDir, 'background.js'));
+
+            // Copy icons
+            const iconsDistDir = resolve(distDir, 'icons');
+            if (!existsSync(iconsDistDir)) mkdirSync(iconsDistDir);
+            copyFileSync(resolve(srcDir, 'icons/icon16.png'), resolve(iconsDistDir, 'icon16.png'));
+            copyFileSync(resolve(srcDir, 'icons/icon48.png'), resolve(iconsDistDir, 'icon48.png'));
+            copyFileSync(resolve(srcDir, 'icons/icon128.png'), resolve(iconsDistDir, 'icon128.png'));
 
             // Copy manifest to dist
             copyFileSync(resolve(__dirname, 'manifest.dist.json'), resolve(distDir, 'manifest.json'));

@@ -2,19 +2,76 @@
     "manifest_version": 3,
     "name": "Eproc Pasta Digital",
     "version": "1.0",
-    "description": "Adiciona visualização de Pasta Digital ao Eproc",
+    "description": "Visualize todos os documentos do processo em ordem cronológica, direto no eProc. Pasta Digital com um clique.",
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
     "permissions": [
         "activeTab",
         "scripting",
-        "storage"
+        "storage",
+        "windows"
     ],
     "host_permissions": [
-        "*://eproc1g.tjsp.jus.br/*"
+        "*://eproc1g.tjsp.jus.br/*",
+        "*://eproc2g.tjsp.jus.br/*",
+        "*://eproc1g.tjrs.jus.br/*",
+        "*://eproc2g.tjrs.jus.br/*",
+        "*://eproc1g.tjmg.jus.br/*",
+        "*://eproc2g.tjmg.jus.br/*",
+        "*://eproc1g.tjsc.jus.br/*",
+        "*://eproc2g.tjsc.jus.br/*",
+        "*://eproc.tjpr.jus.br/*",
+        "*://eproc.tjrj.jus.br/*",
+        "*://eproc.tjba.jus.br/*",
+        "*://eproc.tjal.jus.br/*",
+        "*://eproc.tjse.jus.br/*",
+        "*://eproc.tjms.jus.br/*",
+        "*://eproc.tjto.jus.br/*",
+        "*://eproc.tjac.jus.br/*",
+        "*://portaleproc.trf2.jus.br/*",
+        "*://eproc.trf2.jus.br/*",
+        "*://eproc.trf3.jus.br/*",
+        "*://eproc.trf4.jus.br/*",
+        "*://eproc.jfrs.jus.br/*",
+        "*://eproc.jfsc.jus.br/*",
+        "*://eproc.jfpr.jus.br/*",
+        "*://eproc2g.trf6.jus.br/*",
+        "*://eproctnu.cjf.jus.br/*"
     ],
     "content_scripts": [
         {
             "matches": [
-                "*://*/eproc/controlador.php?acao=processo_selecionar*"
+                "*://eproc1g.tjsp.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc2g.tjsp.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc1g.tjrs.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc2g.tjrs.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc1g.tjmg.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc2g.tjmg.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc1g.tjsc.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc2g.tjsc.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjpr.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjrj.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjba.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjal.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjse.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjms.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjto.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.tjac.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://portaleproc.trf2.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.trf2.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.trf3.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.trf4.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.jfrs.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.jfsc.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc.jfpr.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproc2g.trf6.jus.br/eproc/controlador.php?acao=processo_selecionar*",
+                "*://eproctnu.cjf.jus.br/eproc/controlador.php?acao=processo_selecionar*"
             ],
             "js": [
                 "content.js"

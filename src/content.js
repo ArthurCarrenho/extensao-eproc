@@ -65,7 +65,12 @@ async function openPastaWindow() {
         // 4. Store and Open
         chrome.storage.local.set({ 'eproc_events': allEvents }, () => {
             const url = chrome.runtime.getURL('pasta_window.html');
-            window.open(url, 'PastaDigitalEproc', 'width=1200,height=800');
+            chrome.runtime.sendMessage({ action: 'openPastaWindow', url }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error("Pasta Digital: erro ao abrir janela:", chrome.runtime.lastError.message);
+                    alert("Não foi possível abrir a Pasta Digital. Recarregue a página e tente novamente.");
+                }
+            });
         });
 
     } catch (err) {

@@ -26,12 +26,7 @@ function loadEvents() {
 
         // Select first document automatically
         if (events.length > 0) {
-            setTimeout(() => {
-                const firstItem = document.querySelector('.tree-item');
-                if (firstItem) {
-                    firstItem.click();
-                }
-            }, 0);
+            document.querySelector('.tree-item')?.click();
         }
     });
 

@@ -21,7 +21,7 @@ export function parseDate(dateStr) {
 
 /**
  * Simple template interpolation
- * Replaces {{key}} placeholders with values from data object
+ * Replaces ___key___ placeholders with values from data object
  * @param {string} template - Template string with {{key}} placeholders
  * @param {Object} data - Key-value pairs for substitution
  * @returns {string} - Interpolated string

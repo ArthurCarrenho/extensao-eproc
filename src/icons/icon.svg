@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+
+  <!-- Folder tab -->
+  <path d="M12,32 L12,20 Q12,13 19,13 L49,13 Q56,13 59,20 L59,32 Z" fill="#1a7fe0"/>
+
+  <!-- Folder body -->
+  <rect x="12" y="28" width="104" height="88" rx="6" fill="#0066cc"/>
+
+  <!-- Inner highlight at top of folder for depth -->
+  <rect x="12" y="28" width="104" height="6" rx="0" fill="#1a7fe0" opacity="0.4"/>
+
+  <!-- Scales: center post -->
+  <rect x="62" y="50" width="4" height="44" rx="2" fill="white"/>
+
+  <!-- Scales: top ornament -->
+  <circle cx="64" cy="47" r="5" fill="white"/>
+
+  <!-- Scales: horizontal beam -->
+  <rect x="36" y="58" width="56" height="4" rx="2" fill="white"/>
+
+  <!-- Scales: left strings -->
+  <line x1="40" y1="62" x2="34" y2="78" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="40" y1="62" x2="46" y2="78" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Scales: left pan -->
+  <path d="M31,78 Q40,87 49,78" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Scales: right strings -->
+  <line x1="88" y1="62" x2="82" y2="78" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="88" y1="62" x2="94" y2="78" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Scales: right pan -->
+  <path d="M79,78 Q88,87 97,78" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Scales: base -->
+  <rect x="54" y="94" width="20" height="4" rx="2" fill="white"/>
+
+</svg>
