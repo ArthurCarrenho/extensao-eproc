@@ -38,7 +38,7 @@ O eProc exibe os eventos de um processo em uma tabela paginada, sem agrupamento 
 
 Funciona em qualquer tribunal que utilize o sistema **eProc** — todos compartilham a mesma interface e estrutura de dados.
 
-> Testou em um tribunal não listado? Abra uma [issue](../../issues) ou contribua com um PR para ampliar o suporte.
+> Testou em um tribunal e não funcionou? Abra uma [issue](../../issues) ou contribua com um PR para ampliar o suporte.
 
 ---
 
@@ -67,7 +67,7 @@ Funciona em qualquer tribunal que utilize o sistema **eProc** — todos comparti
 ## Desenvolvimento
 
 ```bash
-git clone https://github.com/seu-usuario/extensao-eproc
+git clone https://github.com/ArthurCarrenho/extensao-eproc
 cd extensao-eproc
 npm install
 npm run dev       # build com watch
