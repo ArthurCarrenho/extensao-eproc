@@ -18,7 +18,9 @@
 
 O eProc exibe os eventos de um processo em uma tabela paginada, sem agrupamento ou ordem cronológica clara. A **Eproc Pasta Digital** resolve isso: com um clique, coleta todos os eventos de todas as páginas e apresenta uma linha do tempo navegável — semelhante à Pasta Digital do eSAJ.
 
-<!-- Adicione um GIF ou screenshot aqui -->
+<div align="center">
+  <img src="screenshots/image.png" alt="Pasta Digital - Eproc" width="800"/>
+</div>
 
 ---
 
